@@ -1,0 +1,31 @@
+{
+  "name": "mockupdata",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "ace-builds": "^1.43.2",
+    "bootstrap": "^5.3.7",
+    "bootstrap-vue-next": "^0.30.4",
+    "monaco-editor": "^0.52.2",
+    "uuid": "^11.1.0",
+    "vite-plugin-monaco-editor": "^1.1.0",
+    "vue": "^3.5.18",
+    "vue3-ace-editor": "^2.2.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.1",
+    "unplugin-vue-components": "^28.8.0",
+    "vite": "^7.0.6",
+    "vite-plugin-static-copy": "^3.1.1",
+    "vite-plugin-vue-devtools": "^8.0.0"
+  }
+}
