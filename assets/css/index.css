@@ -2,3 +2,8 @@
   --primary-color: #6c63ff;
   --accent-color: #f7c948;
 }
+label {
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--primary-color);
+}

@@ -14,6 +14,7 @@
   "dependencies": {
     "ace-builds": "^1.43.2",
     "bootstrap": "^5.3.7",
+    "bootstrap-icons": "^1.13.1",
     "bootstrap-vue-next": "^0.30.4",
     "monaco-editor": "^0.52.2",
     "uuid": "^11.1.0",

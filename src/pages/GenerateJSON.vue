@@ -219,11 +219,6 @@ const handleClear = () => {
   font-size: 1rem;
   margin-top: 2rem;
 }
-label {
-  font-weight: 600;
-  white-space: nowrap;
-  color: var(--primary-color);
-}
 .circle {
   background: linear-gradient(to right, #6f42c1, #0dcaf0);
   border-radius: 50%;
