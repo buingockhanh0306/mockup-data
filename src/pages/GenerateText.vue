@@ -56,43 +56,31 @@
     <div class="d-flex mt-4 mx-auto justify-content-between w-80">
       <div>
         <label class="fs-4 me-3">Characters:</label>
-        <label
-          class="fs-3 text-success"
-          style="min-width: 90px; display: inline-block"
-          >{{ countTextLength }}</label
-        >
+        <label class="d-inline-block d-inline-block fs-3 result-color">{{
+          countTextLength
+        }}</label>
       </div>
       <div>
         <label class="fs-4 me-3">Words:</label>
-        <label
-          class="fs-3 text-success"
-          style="min-width: 90px; display: inline-block"
-          >{{ countWords }}</label
-        >
+        <label class="d-inline-block fs-3 result-color">{{ countWords }}</label>
       </div>
       <div>
         <label class="fs-4 me-3">Sentences:</label>
-        <label
-          class="fs-3 text-success"
-          style="min-width: 90px; display: inline-block"
-          >{{ countSentences }}</label
-        >
+        <label class="d-inline-block fs-3 result-color">{{
+          countSentences
+        }}</label>
       </div>
       <div>
         <label class="fs-4 me-3">Paragraphs:</label>
-        <label
-          class="fs-3 text-success"
-          style="min-width: 90px; display: inline-block"
-          >{{ countParagraphs }}</label
-        >
+        <label class="d-inline-block fs-3 result-color">{{
+          countParagraphs
+        }}</label>
       </div>
       <div>
         <label class="fs-4 me-3">Spaces:</label>
-        <label
-          class="fs-3 text-success"
-          style="min-width: 90px; display: inline-block"
-          >{{ countSpaces }}</label
-        >
+        <label class="d-inline-block fs-3 result-color">{{
+          countSpaces
+        }}</label>
       </div>
     </div>
   </div>
@@ -186,6 +174,10 @@ const handleGenerateText = () => {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
+}
+.result-color {
+  color: #7cd0ee;
+  min-width: 90px;
 }
 
 .slide-down-enter-active,
