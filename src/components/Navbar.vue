@@ -1,7 +1,7 @@
 <template>
   <b-navbar toggleable="lg" class="custom-navbar">
     <div class="d-flex justify-content-between w-100 align-items-center">
-      <b-navbar-brand href="#" class="brand-text"
+      <b-navbar-brand @click="router.push('/')" class="brand-text"
         >✨ Generate Data ✨</b-navbar-brand
       >
       <b-collapse id="nav-collapse" is-nav>
@@ -57,6 +57,10 @@ const listRoute = [
   font-size: 1.4rem;
   font-weight: bold;
   color: white;
+}
+.brand-text:hover {
+  color: #ffc107;
+  cursor: pointer;
 }
 
 .nav-center {

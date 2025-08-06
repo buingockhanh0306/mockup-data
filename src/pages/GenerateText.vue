@@ -1,11 +1,18 @@
 <template>
   <Title text="Generate Text" />
-  <div class="px-5">
+  <div class="container">
     <div class="d-flex align-items-center mb-4 justify-content-between">
       <div class="d-flex gap-2 align-items-center">
         <label for="">Length: </label>
-        <BFormInput v-model="inputLength" placeholder="Enter text length" />
-        <BButton size="md" variant="success" @click="handleGenerateText"
+        <BFormInput
+          v-model="inputLength"
+          placeholder="Enter text length"
+          @keypress="onlyNumber"
+        />
+        <BButton
+          class="c-button"
+          :disabled="!inputLength"
+          @click="handleGenerateText"
           >Generate</BButton
         >
       </div>
@@ -46,26 +53,46 @@
         <p>There is a space at the beginning or end of the text.</p>
       </div>
     </transition>
-    <div class="d-flex mt-4 justify-content-between w-80">
+    <div class="d-flex mt-4 mx-auto justify-content-between w-80">
       <div>
         <label class="fs-4 me-3">Characters:</label>
-        <label class="fs-3 text-success">{{ countTextLength }}</label>
+        <label
+          class="fs-3 text-success"
+          style="min-width: 90px; display: inline-block"
+          >{{ countTextLength }}</label
+        >
       </div>
       <div>
         <label class="fs-4 me-3">Words:</label>
-        <label class="fs-3 text-success">{{ countWords }}</label>
+        <label
+          class="fs-3 text-success"
+          style="min-width: 90px; display: inline-block"
+          >{{ countWords }}</label
+        >
       </div>
       <div>
         <label class="fs-4 me-3">Sentences:</label>
-        <label class="fs-3 text-success">{{ countSentences }}</label>
+        <label
+          class="fs-3 text-success"
+          style="min-width: 90px; display: inline-block"
+          >{{ countSentences }}</label
+        >
       </div>
       <div>
         <label class="fs-4 me-3">Paragraphs:</label>
-        <label class="fs-3 text-success">{{ countParagraphs }}</label>
+        <label
+          class="fs-3 text-success"
+          style="min-width: 90px; display: inline-block"
+          >{{ countParagraphs }}</label
+        >
       </div>
       <div>
         <label class="fs-4 me-3">Spaces:</label>
-        <label class="fs-3 text-success">{{ countSpaces }}</label>
+        <label
+          class="fs-3 text-success"
+          style="min-width: 90px; display: inline-block"
+          >{{ countSpaces }}</label
+        >
       </div>
     </div>
   </div>
@@ -85,7 +112,9 @@ const countTextLength = computed(() => {
 });
 
 const countWords = computed(() => {
-  return generatedText.value.trim().replaceAll(/\s+/g, " ").split(" ").length;
+  const words = generatedText.value.trim().replaceAll(/\s+/g, " ").split(" ");
+  if (words.length === 1 && words[0] === "") return 0;
+  return words.length;
 });
 
 const countSentences = computed(() => {
@@ -105,6 +134,13 @@ const countSpaces = computed(() => {
   return (generatedText.value.match(/ /g) || []).length;
 });
 
+const onlyNumber = (e) => {
+  const char = String.fromCharCode(e.keyCode);
+  if (!/[0-9]/.test(char)) {
+    e.preventDefault();
+  }
+};
+
 const handleBlurTextarea = () => {
   const hasSpace = /^\s|\s$/.test(generatedText.value);
   if (hasSpace) {
@@ -114,6 +150,7 @@ const handleBlurTextarea = () => {
 
 const handleClear = () => {
   generatedText.value = "";
+  inputLength.value = null;
 };
 
 const handleCopy = async () => {

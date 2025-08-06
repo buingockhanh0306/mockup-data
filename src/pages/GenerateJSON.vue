@@ -21,7 +21,11 @@
         </div>
         <div class="d-flex align-items-center gap-2 w-25">
           <label class="mb-0">Quantity:</label>
-          <BFormInput v-model="quantity" class="form-control-sm element" />
+          <BFormInput
+            v-model="quantity"
+            @keypress="onlyNumber"
+            class="form-control-sm element"
+          />
         </div>
       </div>
 
@@ -84,7 +88,7 @@
     </div>
   </div>
   <div class="container">
-    <BButton variant="success" :disabled="isDisabledSubmit" @click="getCode"
+    <BButton class="c-button" :disabled="isDisabledSubmit" @click="getCode"
       >Generate</BButton
     >
   </div>
@@ -157,6 +161,13 @@ watch(
   },
   { deep: true }
 );
+
+const onlyNumber = (e) => {
+  const char = String.fromCharCode(e.keyCode);
+  if (!/[0-9]/.test(char)) {
+    e.preventDefault();
+  }
+};
 
 const getCode = () => {
   if (!quantity.value) quantity.value = 1;
