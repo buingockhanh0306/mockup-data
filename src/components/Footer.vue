@@ -1,5 +1,5 @@
 <template>
-  <footer class="custom-footer mt-5">
+  <footer class="custom-footer">
     <div class="container text-center py-4">
       <h5 class="fw-bold mb-2">Generate Data</h5>
       <p class="mb-3">
