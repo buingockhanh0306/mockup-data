@@ -36,8 +36,8 @@ const listRoute = [
     path: "/generate-text",
   },
   {
-    name: "Anything",
-    path: "/anything",
+    name: "Generate Voice",
+    path: "/generate-voice",
   },
 ];
 </script>

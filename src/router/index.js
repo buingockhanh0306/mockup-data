@@ -2,6 +2,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import GenerateJSON from "@/pages/GenerateJSON.vue";
 import GenerateText from "@/pages/GenerateText.vue";
+import GenerateVoice from "@/pages/GenerateVoice.vue";
 
 const routes = [
   {
@@ -13,6 +14,11 @@ const routes = [
     path: "/generate-text",
     name: "GenerateText",
     component: GenerateText,
+  },
+  {
+    path: "/generate-voice",
+    name: "GenerateVoice",
+    component: GenerateVoice,
   },
 ];
 
