@@ -2,7 +2,7 @@
   <Title text="Generate JSON" />
   <div class="container">
     <div class="w-100">
-      <div class="d-flex justify-content-between align-items-center gap-4">
+      <div class="d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center gap-2">
           <label class="mb-0">Mode:</label>
           <BFormSelect
@@ -12,27 +12,41 @@
           />
         </div>
         <div class="d-flex align-items-center gap-2">
-          <label class="mb-0">Primary key:</label>
+          <label class="mb-0">{{mode === MODE_CONVERT.EXCEL ? 'Key:' : 'Primary key:'}}</label>
           <BFormSelect
+            v-if="mode !== MODE_CONVERT.EXCEL"
             v-model="primaryKey"
             :options="optionsPrimaryKey"
             class="form-select-sm element"
           />
+          <BFormSelect
+            v-else
+            v-model="keyColumn"
+            :options="optionColumnExcel"
+            class="form-select-sm element"
+          />
         </div>
         <div class="d-flex align-items-center gap-2 w-25">
-          <label class="mb-0">Quantity:</label>
+          <label class="mb-0">{{mode === MODE_CONVERT.EXCEL ? 'Value:' : 'Quantity:'}}</label>
           <BFormInput
+            v-if="mode !== MODE_CONVERT.EXCEL"
             v-model="quantity"
             @keypress="onlyNumber"
             class="form-control-sm element"
           />
+          <BFormSelect
+              v-else
+              v-model="valueColumn"
+              :options="optionColumnExcel"
+              class="form-select-sm element"
+          />
         </div>
       </div>
 
-      <div class="block-code" v-if="mode === 'JSON'">
+      <div class="block-code" v-if="mode === MODE_CONVERT.JSON">
         <code-editor v-model="originalCode" />
       </div>
-      <div v-else style="margin-top: 2rem">
+      <div v-else-if="mode === MODE_CONVERT.FIELDS" style="margin-top: 2rem">
         <div
           v-for="(item, index) in keysAndValues"
           :key="index"
@@ -59,6 +73,30 @@
             +
           </div>
         </div>
+      </div>
+      <div v-else-if="mode === MODE_CONVERT.EXCEL" style="margin-top: 2rem">
+        <div class="drag-area d-flex gap-2"
+             @dragover.prevent="isDragging = true"
+             @dragleave.prevent="isDragging = false"
+             @drop.prevent="handleDrop"
+        >
+          <i v-if="!fileSelected" class="bi bi-cloud-arrow-up-fill drag-area__icon"></i>
+          <i v-else class="bi bi-file-earmark-spreadsheet drag-area__icon text-success"></i>
+          <span :class="fileSelected ? 'text-success' : 'text-primary'">{{textUpload}}</span>
+          <span class="my-3" :class="fileSelected ? 'text-success' : 'text-primary'">{{fileName}}</span>
+          <input
+              type="file"
+              ref="fileInput"
+              accept=".xls,.xlsx"
+              @change="handleFileUpload($event)"
+              style="display: none;"
+          />
+          <BButton class="c-button drag-area__btn" @click="triggerUpload">
+            Upload
+          </BButton
+          >
+        </div>
+
       </div>
     </div>
     <div class="w-100">
@@ -96,7 +134,9 @@
 <script setup>
 import Title from "@/components/Title.vue";
 import CodeEditor from "@/components/CodeEditor.vue";
-import { computed, ref, watch } from "vue";
+import {computed, onMounted, ref, watch} from "vue";
+import {MODE_CONVERT} from "@/constants/index.js";
+import * as XLSX from "xlsx";
 
 const originalCode = ref("");
 const targetCode = ref("");
@@ -104,13 +144,21 @@ const primaryKey = ref(null);
 const quantity = ref("");
 const mode = ref("JSON");
 const keysAndValues = ref([]);
+const fileInput = ref(null);
+const isDragging = ref(false);
+const fileSelected = ref(null);
+const optionColumnExcel = ref(['Please upload file']);
+const keyColumn = ref(null);
+const valueColumn = ref(null);
 
 const optionsMode = [
-  { value: "JSON", text: "JSON" },
-  { value: "fields", text: "Fields" },
+  { value: MODE_CONVERT.JSON, text: "JSON" },
+  { value: MODE_CONVERT.FIELDS, text: "Fields" },
+  { value: MODE_CONVERT.EXCEL, text: "Excel" },
 ];
 
 const isDisabledSubmit = computed(() => {
+  if(mode.value === MODE_CONVERT.EXCEL && fileSelected.value) return false
   try {
     const parsed = JSON.parse(originalCode.value);
     return !parsed;
@@ -130,6 +178,14 @@ const optionsPrimaryKey = computed(() => {
     return [{ value: null, text: "Select primary key" }];
   }
 });
+
+const textUpload = computed(()=>{
+  return fileSelected.value ? "The file was uploaded successfully" : "Drag & Drop To Upload File"
+})
+
+const fileName = computed(()=>{
+  return fileSelected.value ? fileSelected.value.name : "Or"
+})
 
 watch(
   originalCode,
@@ -162,6 +218,34 @@ watch(
   { deep: true }
 );
 
+const triggerUpload = ()=>{
+  fileInput.value.click();
+}
+
+const handleDrop = (event)=>{
+  isDragging.value = false;
+  const file = event.dataTransfer.files[0];
+  if (file) {
+    readExcel(file);
+  }
+}
+const handleFileUpload = (event)=>{
+  const file = event?.target?.files[0];
+  if (file) {
+    readExcel(file);
+  } else{
+    console.log("not file")
+  }
+}
+
+const readExcel = async (file)=>{
+  fileSelected.value = file
+  const rows = await getRowsExcel(file)
+  optionColumnExcel.value = rows[0];
+  keyColumn.value = optionColumnExcel.value[0];
+  valueColumn.value = optionColumnExcel.value[1];
+}
+
 const onlyNumber = (e) => {
   const char = String.fromCharCode(e.keyCode);
   if (!/[0-9]/.test(char)) {
@@ -169,7 +253,13 @@ const onlyNumber = (e) => {
   }
 };
 
-const getCode = () => {
+const getCode = async() => {
+  if(mode.value === MODE_CONVERT.EXCEL){
+    const result  = await convertExcelToJson(fileSelected.value)
+    console.log(result);
+    targetCode.value = JSON.stringify(result, null, 2);
+    return;
+  }
   if (!quantity.value) quantity.value = 1;
 
   let jsonOriginal;
@@ -211,6 +301,61 @@ const handleClear = () => {
   primaryKey.value = null;
   quantity.value = "";
 };
+
+const getRowsExcel = async(file) =>{
+  const arrayBuffer = await file.arrayBuffer();
+  const workbook = XLSX.read(arrayBuffer, { type: "array" });
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  return XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+}
+
+
+const convertExcelToJson = async (file, skipHeader = true)=>{
+  const rows = await getRowsExcel(file)
+
+  const result = {};
+  const idxKey = optionColumnExcel.value.indexOf(keyColumn.value)
+  const idxValue = optionColumnExcel.value.indexOf(valueColumn.value)
+  const startRow = skipHeader ? 1 : 0;
+
+  const setNested = (obj, pathArr, value) => {
+    let cur = obj;
+    for (let i = 0; i < pathArr.length; i++) {
+      const key = String(pathArr[i]).trim();
+      if (!key) continue;
+      if (i === pathArr.length - 1) {
+        cur[key] = value;
+      } else {
+        if (!cur[key] || typeof cur[key] !== "object") cur[key] = {};
+        cur = cur[key];
+      }
+    }
+  };
+
+  for (let i = startRow; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row) continue;
+
+    const keyCell = row[idxKey];
+    const valueCell = row[idxValue];
+    console.log({ keyCell, value: valueCell });
+    if (!keyCell || String(keyCell).trim() === "") continue;
+
+    const pathArr = String(keyCell)
+        .split(".")
+        .map((s) => s.trim())
+        .filter((s) => s);
+
+    setNested(result, pathArr, valueCell ?? "");
+  }
+  return result;
+}
+
+onMounted(()=>{
+  keyColumn.value = optionColumnExcel.value[0]
+  valueColumn.value = optionColumnExcel.value[0]
+})
 </script>
 
 <style scoped>
@@ -250,5 +395,23 @@ const handleClear = () => {
 }
 .element {
   box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+}
+.drag-area{
+  width: 100%;
+  border-radius: 15px;
+  border: 2px dashed var(--primary-color);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 514px;
+}
+.drag-area__icon{
+  line-height: 6rem;
+  font-size: 6rem;
+  color: var(--primary-color);
+}
+.drag-area__btn{
+  background: var(--primary-color);
+
 }
 </style>

@@ -21,9 +21,18 @@
         <span class="rate">{{ rate }}x</span>
       </div>
       <div class="d-flex">
-        <BButton class="c-button me-2" @click="handleGenerateVoice">{{
-          isPlaying ? "Stop" : "Play"
-        }}</BButton>
+        <BButton
+          class="c-button me-2"
+          :disabled="!inputText.length"
+          @click="handleGenerateVoice"
+        >
+          <i
+            :class="isPlaying ? 'bi-stop-fill' : 'bi-play-fill'"
+            class="me-1"
+          ></i>
+          {{ isPlaying ? "Stop" : "Play" }}
+        </BButton>
+
         <BButton
           size="sm"
           class="me-2"
@@ -61,6 +70,11 @@ const setListVoices = () => {
 };
 
 const handleGenerateVoice = () => {
+  if (isPlaying.value) {
+    responsiveVoice.cancel();
+    isPlaying.value = false;
+    return;
+  }
   responsiveVoice.speak(inputText.value, typeVoice.value, {
     rate: rate.value,
     onstart: () => {

@@ -39,6 +39,10 @@ const listRoute = [
     name: "Generate Voice",
     path: "/generate-voice",
   },
+  // {
+  //   name: "Generate Qr",
+  //   path: "/generate-qr",
+  // },
 ];
 </script>
 

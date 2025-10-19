@@ -11,7 +11,10 @@ label {
   background: linear-gradient(to right, #6f42c1, #0dcaf0);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border: none !important;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
+
 .c-button:hover {
-  background: linear-gradient(to right, #0dcaf0, #6f42c1);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px); /* hiệu ứng nổi lên nhẹ */
 }
