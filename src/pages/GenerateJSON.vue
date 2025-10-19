@@ -1,48 +1,71 @@
 <template>
   <Title text="Generate JSON" />
   <div class="container">
-    <div class="w-100">
-      <div class="d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center gap-2">
-          <label class="mb-0">Mode:</label>
-          <BFormSelect
+  <div class="d-flex justify-content-between w-100">
+    <div class="d-flex gap-4">
+      <div class="d-flex align-items-center gap-2">
+        <label class="mb-0">Mode:</label>
+        <BFormSelect
             v-model="mode"
             :options="optionsMode"
             class="form-select-sm element"
-          />
-        </div>
-        <div class="d-flex align-items-center gap-2">
-          <label class="mb-0">{{mode === MODE_CONVERT.EXCEL ? 'Key:' : 'Primary key:'}}</label>
-          <BFormSelect
+        />
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <label class="mb-0">{{mode === MODE_CONVERT.EXCEL ? 'Key:' : 'Primary key:'}}</label>
+        <BFormSelect
             v-if="mode !== MODE_CONVERT.EXCEL"
             v-model="primaryKey"
             :options="optionsPrimaryKey"
             class="form-select-sm element"
-          />
-          <BFormSelect
+        />
+        <BFormSelect
             v-else
             v-model="keyColumn"
             :options="optionColumnExcel"
             class="form-select-sm element"
-          />
-        </div>
-        <div class="d-flex align-items-center gap-2 w-25">
-          <label class="mb-0">{{mode === MODE_CONVERT.EXCEL ? 'Value:' : 'Quantity:'}}</label>
-          <BFormInput
+        />
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <label class="mb-0">{{mode === MODE_CONVERT.EXCEL ? 'Value:' : 'Quantity:'}}</label>
+        <BFormInput
             v-if="mode !== MODE_CONVERT.EXCEL"
             v-model="quantity"
             @keypress="onlyNumber"
             class="form-control-sm element"
-          />
-          <BFormSelect
-              v-else
-              v-model="valueColumn"
-              :options="optionColumnExcel"
-              class="form-select-sm element"
-          />
-        </div>
+        />
+        <BFormSelect
+            v-else
+            v-model="valueColumn"
+            :options="optionColumnExcel"
+            class="form-select-sm element"
+        />
       </div>
-
+    </div>
+    <div class="d-flex justify-content-end">
+      <BButton
+          size="sm"
+          class="me-2"
+          variant="outline-danger"
+          @click="handleClear"
+      >Clear</BButton
+      >
+      <BPopover click placement="top" body="Copied">
+        <template #target>
+          <BButton
+              size="sm"
+              variant="outline-primary"
+              :disabled="!targetCode"
+              @click="handleCopy"
+          >Copy</BButton
+          >
+        </template>
+      </BPopover>
+    </div>
+  </div>
+  </div>
+  <div class="container">
+    <div class="w-100">
       <div class="block-code" v-if="mode === MODE_CONVERT.JSON">
         <code-editor v-model="originalCode" />
       </div>
@@ -75,15 +98,16 @@
         </div>
       </div>
       <div v-else-if="mode === MODE_CONVERT.EXCEL" style="margin-top: 2rem">
-        <div class="drag-area d-flex gap-2"
-             @dragover.prevent="isDragging = true"
-             @dragleave.prevent="isDragging = false"
-             @drop.prevent="handleDrop"
+        <div
+           class="drag-area d-flex gap-2"
+           :style="{ border: getInfoFile.styleBorder }"
+           @dragover.prevent="isDragging = true"
+           @dragleave.prevent="isDragging = false"
+           @drop.prevent="handleDrop"
         >
-          <i v-if="!fileSelected" class="bi bi-cloud-arrow-up-fill drag-area__icon"></i>
-          <i v-else class="bi bi-file-earmark-spreadsheet drag-area__icon text-success"></i>
-          <span :class="fileSelected ? 'text-success' : 'text-primary'">{{textUpload}}</span>
-          <span class="my-3" :class="fileSelected ? 'text-success' : 'text-primary'">{{fileName}}</span>
+          <i :class="getInfoFile.classIcon"></i>
+          <span :class="getInfoFile.classColor">{{getInfoFile.text}}</span>
+          <span class="my-3" :class="getInfoFile.classColor">{{fileName}}</span>
           <input
               type="file"
               ref="fileInput"
@@ -100,26 +124,7 @@
       </div>
     </div>
     <div class="w-100">
-      <div class="d-flex justify-content-end">
-        <BButton
-          size="sm"
-          class="me-2"
-          variant="outline-danger"
-          @click="handleClear"
-          >Clear</BButton
-        >
-        <BPopover click placement="top" body="Copied">
-          <template #target>
-            <BButton
-              size="sm"
-              variant="outline-primary"
-              :disabled="!targetCode"
-              @click="handleCopy"
-              >Copy</BButton
-            >
-          </template>
-        </BPopover>
-      </div>
+
       <div class="block-code">
         <code-editor v-model="targetCode" readonly />
       </div>
@@ -150,6 +155,7 @@ const fileSelected = ref(null);
 const optionColumnExcel = ref(['Please upload file']);
 const keyColumn = ref(null);
 const valueColumn = ref(null);
+const isValidFile = ref(false);
 
 const optionsMode = [
   { value: MODE_CONVERT.JSON, text: "JSON" },
@@ -158,7 +164,7 @@ const optionsMode = [
 ];
 
 const isDisabledSubmit = computed(() => {
-  if(mode.value === MODE_CONVERT.EXCEL && fileSelected.value) return false
+  if(mode.value === MODE_CONVERT.EXCEL && fileSelected.value && isValidFile.value) return false
   try {
     const parsed = JSON.parse(originalCode.value);
     return !parsed;
@@ -179,9 +185,31 @@ const optionsPrimaryKey = computed(() => {
   }
 });
 
-const textUpload = computed(()=>{
-  return fileSelected.value ? "The file was uploaded successfully" : "Drag & Drop To Upload File"
+const getInfoFile = computed(()=>{
+  if(fileSelected.value && !isValidFile.value) {
+    return {
+      text: "The uploaded file is invalid!",
+      classColor: "text-danger",
+      classIcon: "bi bi-x-octagon drag-area__icon text-danger",
+      styleBorder: "2px dashed var(--error-color)"
+    }
+  } else if(fileSelected.value){
+     return {
+      text: "The file was uploaded successfully!",
+      classColor: "text-success",
+      classIcon: "bi bi-file-earmark-spreadsheet drag-area__icon text-success",
+      styleBorder: "2px dashed var(--success-color)"
+    }
+  } else{
+    return {
+      text: "Drag & Drop To Upload Excel File",
+      classColor: "text-primary",
+      classIcon: "bi bi-cloud-arrow-up-fill drag-area__icon",
+      styleBorder: "2px dashed var(--primary-color)"
+    }
+  }
 })
+
 
 const fileName = computed(()=>{
   return fileSelected.value ? fileSelected.value.name : "Or"
@@ -222,15 +250,17 @@ const triggerUpload = ()=>{
   fileInput.value.click();
 }
 
-const handleDrop = (event)=>{
+const handleDrop = async (event)=>{
   isDragging.value = false;
   const file = event.dataTransfer.files[0];
+  isValidFile.value = await checkFileExcel(file);
   if (file) {
     readExcel(file);
   }
 }
-const handleFileUpload = (event)=>{
+const handleFileUpload = async(event)=>{
   const file = event?.target?.files[0];
+  isValidFile.value = await checkFileExcel(file);
   if (file) {
     readExcel(file);
   } else{
@@ -240,6 +270,10 @@ const handleFileUpload = (event)=>{
 
 const readExcel = async (file)=>{
   fileSelected.value = file
+  if(!isValidFile.value) {
+    resetDataFile();
+    return
+  }
   const rows = await getRowsExcel(file)
   optionColumnExcel.value = rows[0];
   keyColumn.value = optionColumnExcel.value[0];
@@ -300,7 +334,21 @@ const handleClear = () => {
   targetCode.value = "";
   primaryKey.value = null;
   quantity.value = "";
+  fileSelected.value = null;
+  resetDataFile()
 };
+
+const resetDataFile = () =>{
+  optionColumnExcel.value = ['Please upload file'];
+  keyColumn.value = optionColumnExcel.value[0];
+  valueColumn.value = optionColumnExcel.value[0];
+}
+
+const checkFileExcel = async (file) => {
+  const allowedExtensions = ['.xls', '.xlsx'];
+  const fileName = file.name.toLowerCase();
+  return allowedExtensions.some(ext => fileName.endsWith(ext));
+}
 
 const getRowsExcel = async(file) =>{
   const arrayBuffer = await file.arrayBuffer();
@@ -399,7 +447,6 @@ onMounted(()=>{
 .drag-area{
   width: 100%;
   border-radius: 15px;
-  border: 2px dashed var(--primary-color);
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -412,6 +459,12 @@ onMounted(()=>{
 }
 .drag-area__btn{
   background: var(--primary-color);
-
+}
+.drag-area__btn:hover,
+.drag-area__btn:active{
+  background: var(--primary-color) !important;
+  opacity: 0.8 !important;
 }
 </style>
+
+

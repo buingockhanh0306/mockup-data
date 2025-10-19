@@ -1,5 +1,7 @@
 :root {
   --primary-color: #6c63ff;
+  --success-color: #198754;
+  --error-color: #d63646;
   --accent-color: #f7c948;
 }
 label {
