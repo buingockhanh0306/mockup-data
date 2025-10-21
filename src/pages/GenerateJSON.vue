@@ -246,6 +246,14 @@ watch(
   { deep: true }
 );
 
+watch(
+    [keyColumn, valueColumn],
+    ([newKey, newValue], [oldKey, oldValue]) => {
+      if (oldValue === "Please upload file") return
+      getCode()
+    }
+)
+
 const triggerUpload = ()=>{
   fileInput.value.click();
 }
