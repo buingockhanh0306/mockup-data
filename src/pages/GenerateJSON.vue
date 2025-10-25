@@ -11,6 +11,14 @@
             class="form-select-sm element"
         />
       </div>
+      <div v-if="mode === MODE_CONVERT.EXCEL" class="d-flex align-items-center gap-2">
+        <label class="mb-0">Sheet:</label>
+        <BFormSelect
+            v-model="sheetSelected"
+            :options="optionSheetExcel"
+            class="form-select-sm element"
+        />
+      </div>
       <div class="d-flex align-items-center gap-2">
         <label class="mb-0">{{mode === MODE_CONVERT.EXCEL ? 'Key:' : 'Primary key:'}}</label>
         <BFormSelect
@@ -152,7 +160,10 @@ const keysAndValues = ref([]);
 const fileInput = ref(null);
 const isDragging = ref(false);
 const fileSelected = ref(null);
-const optionColumnExcel = ref(['Please upload file']);
+const textOptionNull = ref("Please upload file");
+const optionColumnExcel = ref([textOptionNull.value]);
+const optionSheetExcel = ref([textOptionNull.value]);
+const sheetSelected = ref(null);
 const keyColumn = ref(null);
 const valueColumn = ref(null);
 const isValidFile = ref(false);
@@ -249,8 +260,18 @@ watch(
 watch(
     [keyColumn, valueColumn],
     ([newKey, newValue], [oldKey, oldValue]) => {
-      if (oldValue === "Please upload file") return
+      if (oldValue === textOptionNull.value) return
       getCode()
+    }
+)
+
+watch(
+    sheetSelected,
+     async() => {
+       const rows = await getRowsExcel(fileSelected.value)
+       optionColumnExcel.value = rows[0];
+       keyColumn.value = optionColumnExcel.value[0];
+       valueColumn.value = optionColumnExcel.value[1];
     }
 )
 
@@ -286,6 +307,7 @@ const readExcel = async (file)=>{
   optionColumnExcel.value = rows[0];
   keyColumn.value = optionColumnExcel.value[0];
   valueColumn.value = optionColumnExcel.value[1];
+  sheetSelected.value = optionSheetExcel.value[0]
 }
 
 const onlyNumber = (e) => {
@@ -298,7 +320,6 @@ const onlyNumber = (e) => {
 const getCode = async() => {
   if(mode.value === MODE_CONVERT.EXCEL){
     const result  = await convertExcelToJson(fileSelected.value)
-    console.log(result);
     targetCode.value = JSON.stringify(result, null, 2);
     return;
   }
@@ -347,9 +368,11 @@ const handleClear = () => {
 };
 
 const resetDataFile = () =>{
-  optionColumnExcel.value = ['Please upload file'];
+  optionColumnExcel.value = [textOptionNull.value];
+  optionSheetExcel.value = [textOptionNull.value];
   keyColumn.value = optionColumnExcel.value[0];
   valueColumn.value = optionColumnExcel.value[0];
+  sheetSelected.value = optionSheetExcel.value[0];
 }
 
 const checkFileExcel = async (file) => {
@@ -361,7 +384,8 @@ const checkFileExcel = async (file) => {
 const getRowsExcel = async(file) =>{
   const arrayBuffer = await file.arrayBuffer();
   const workbook = XLSX.read(arrayBuffer, { type: "array" });
-  const sheetName = workbook.SheetNames[0];
+  optionSheetExcel.value = workbook.SheetNames;
+  const sheetName = sheetSelected.value === textOptionNull.value ? workbook.SheetNames[0] : sheetSelected.value;
   const sheet = workbook.Sheets[sheetName];
   return XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
 }
@@ -395,7 +419,6 @@ const convertExcelToJson = async (file, skipHeader = true)=>{
 
     const keyCell = row[idxKey];
     const valueCell = row[idxValue];
-    console.log({ keyCell, value: valueCell });
     if (!keyCell || String(keyCell).trim() === "") continue;
 
     const pathArr = String(keyCell)
@@ -411,6 +434,7 @@ const convertExcelToJson = async (file, skipHeader = true)=>{
 onMounted(()=>{
   keyColumn.value = optionColumnExcel.value[0]
   valueColumn.value = optionColumnExcel.value[0]
+  sheetSelected.value = optionSheetExcel.value[0];
 })
 </script>
 
