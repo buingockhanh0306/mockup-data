@@ -75,8 +75,12 @@ const columns = [
 ]
 
 const isDisableGetKey = computed(() => {
-  const parsed = JSON.parse(inputObj.value);
-  return !parsed;
+  try {
+    const parsed = JSON.parse(inputObj.value);
+    return !parsed;
+  } catch (e) {
+    return true;
+  }
 })
 
 
@@ -95,7 +99,7 @@ const handleGetKey = () =>{
 }
 
 const handleSearch = ()=>{
-  itemsFiltered.value = items.value.filter(item=> item.key.includes(inputSearch.value) || item.value.includes(inputSearch.value))
+  itemsFiltered.value = items.value.filter(item=> item.key.includes(inputSearch.value) || item.value.toString().toLowerCase().includes(inputSearch.value.toLowerCase()))
 }
 
 const handleCopy = (data) =>{
