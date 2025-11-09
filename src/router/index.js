@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import GenerateJSON from "@/pages/GenerateJSON.vue";
 import GenerateText from "@/pages/GenerateText.vue";
 import GenerateVoice from "@/pages/GenerateVoice.vue";
+import GetKey from "@/pages/GetKey.vue";
 // import GenerateQr from "@/pages/GenerateQr.vue";
 
 const routes = [
@@ -21,6 +22,11 @@ const routes = [
     name: "GenerateVoice",
     component: GenerateVoice,
   },
+    {
+        path: "/get-key",
+        name: "GetKey",
+        component: GetKey,
+    }
   // {
   //   path: "/generate-qr",
   //   name: "GenerateQr",

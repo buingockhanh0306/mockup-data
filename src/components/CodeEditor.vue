@@ -28,6 +28,7 @@ const editorOptions = {
   enableBasicAutocompletion: true,
   enableLiveAutocompletion: true,
   enableSnippets: true,
+  showPrintMargin: false
 };
 
 const props = defineProps({
