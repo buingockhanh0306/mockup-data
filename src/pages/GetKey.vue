@@ -25,6 +25,7 @@
       <div class="d-flex gap-2 align-items-center">
         <label for="">Search: </label>
         <BFormInput
+            ref="inputRef"
             v-model="inputSearch"
             placeholder="Enter key or text..."
             class="w-1/2"
@@ -83,23 +84,37 @@ const isDisableGetKey = computed(() => {
   }
 })
 
-
 const handleGetKey = () =>{
   const obj = JSON.parse(inputObj.value)
   const result = Object.entries(obj)
   items.value = []
   result.forEach(item=>{
     items.value.push({
-      key:  inputPrefix.value ? `{{ "${inputPrefix.value}.${item[0]}" | translate }}`: `{{ "${item[0]}" | translate }}`,
+      key:  inputPrefix.value ? `{{ '${inputPrefix.value}.${item[0]}' | translate }}`: `{{ '${item[0]}' | translate }}`,
       value:item[1]}
     );
   })
   mode.value = MODE.RESULT
   handleSearch()
 }
+const convertDataSearch = (data) => {
+  return data
+      .toString()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'D')
+}
 
 const handleSearch = ()=>{
-  itemsFiltered.value = items.value.filter(item=> item.key.includes(inputSearch.value) || item.value.toString().toLowerCase().includes(inputSearch.value.toLowerCase()))
+  let searchConvert = convertDataSearch(inputSearch.value);
+  itemsFiltered.value = items.value.filter(item=> {
+    let keyConvert = convertDataSearch(item.key);
+    let valueConvert = convertDataSearch(item.value)
+    return keyConvert.includes(searchConvert) || valueConvert.includes(searchConvert);
+
+  })
 }
 
 const handleCopy = (data) =>{
