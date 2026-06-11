@@ -1,4 +1,4 @@
-name: Vue CI/CD Deploy
+name: Deploy Vue to VPS
 
 on:
   push:
@@ -18,16 +18,30 @@ jobs:
           node-version: 18
           cache: npm
 
-      # FIX LỖI ERESOLVE FIREBASE
+      # FIX lỗi Firebase / dependency
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Build project
+      - name: Build Vue app
         run: npm run build
 
-      # (OPTION 1) Upload artifact (test)
-      - name: Upload dist
-        uses: actions/upload-artifact@v4
+      # Deploy lên VPS qua SSH
+      - name: Deploy to VPS
+        uses: appleboy/scp-action@v0.1.7
         with:
-          name: dist
-          path: dist
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "dist/*"
+          target: "/var/www/vue-app"
+          strip_components: 1
+
+      # Restart nginx (optional)
+      - name: Restart Nginx
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            sudo systemctl restart nginx
