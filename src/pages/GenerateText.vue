@@ -88,6 +88,7 @@
 <script setup>
 import { computed, ref } from "vue";
 import Title from "@/components/Title.vue";
+import { copyText } from "@/utils/clipboard";
 
 const generatedText = ref("");
 const inputLength = ref(null);
@@ -142,7 +143,7 @@ const handleClear = () => {
 };
 
 const handleCopy = async () => {
-  await navigator.clipboard.writeText(generatedText.value);
+  await copyText(generatedText.value);
 };
 
 const handleGenerateText = () => {

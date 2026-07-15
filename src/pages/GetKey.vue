@@ -58,6 +58,7 @@ import Title from "@/components/Title.vue";
 import {computed, ref} from "vue";
 import {BButton, BFormInput} from "bootstrap-vue-next";
 import CodeEditor from "@/components/CodeEditor.vue";
+import { copyText } from "@/utils/clipboard";
 
 const inputPrefix = ref('');
 const inputSearch = ref('');
@@ -118,8 +119,7 @@ const handleSearch = ()=>{
 }
 
 const handleCopy = (data) =>{
-  console.log(data.item.key)
-  navigator.clipboard.writeText(data.item.key)
+  copyText(data.item.key)
 }
 
 </script>

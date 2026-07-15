@@ -150,6 +150,7 @@ import CodeEditor from "@/components/CodeEditor.vue";
 import {computed, onMounted, ref, watch} from "vue";
 import {MODE_CONVERT} from "@/constants/index.js";
 import * as XLSX from "xlsx";
+import { copyText } from "@/utils/clipboard";
 
 const originalCode = ref("");
 const targetCode = ref("");
@@ -356,7 +357,7 @@ const handleAddField = () => {
 };
 
 const handleCopy = async () => {
-  await navigator.clipboard.writeText(targetCode.value);
+  await copyText(targetCode.value);
 };
 const handleClear = () => {
   originalCode.value = "";
